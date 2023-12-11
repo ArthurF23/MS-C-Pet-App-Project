@@ -9,21 +9,30 @@ using System.Runtime.Intrinsics.Arm;
 //define each animal in one function when we clone this class.
 public class animalFile
 {
+    //Checks for any values that would leave a blank space on the animalFile. Replaces it with N/A
+    private string checkInvalid(string ins)
+    {
+        if (ins == null || ins.Length == 0 || ins == "\r" || ins == "\n" || ins == " ")
+        {
+            return "N/A";
+        }
+        return ins;
+    }
     //init class with defs
-    public animalFile(string species, string id, string age, string phy_desc, string per_desc, string nickname, string sug_dono)
+    public animalFile(string species_, string id_, string age_, string phy_desc_, string per_desc_, string nickname_, string sug_dono_)
     {
         //Assign func args to their respective string vars
-        animalSpecies += species;
-        animalID += id;
-        animalAge += age;
-        animalPhysicalDescription += phy_desc;
-        animalPersonalityDescription += per_desc;
-        animalNickname += nickname;
+        species = checkInvalid(species_);
+        ID = checkInvalid(id_);
+        age = checkInvalid(age_);
+        physicalDescription = checkInvalid(phy_desc_);
+        personalityDescription = checkInvalid(per_desc_);
+        nickname = checkInvalid(nickname_);
 
         try
         {
             // Parse the input string sug_dono for a decimal number. If it's NaN, default to 45.00
-            if (!decimal.TryParse(sug_dono, out decimalDonation))
+            if (!decimal.TryParse(sug_dono_, out decimalDonation))
             {
                 decimalDonation = 45.00m; // if suggestedDonation NOT a number, default to 45.00
             }
@@ -37,13 +46,14 @@ public class animalFile
             suggestedDonation = $"{decimalDonation:C2}";
         }
     }
+
     // ourAnimals class will store the following: 
-    public string animalSpecies { get; private set; }
-    public string animalID { get; private set; }
-    public string animalAge { get; private set; }
-    public string animalPhysicalDescription { get; private set; }
-    public string animalPersonalityDescription { get; private set; }
-    public string animalNickname { get; private set; }
+    public string species { get; private set; }
+    public string ID { get; private set; }
+    public string age { get; private set; }
+    public string physicalDescription { get; private set; }
+    public string personalityDescription { get; private set; }
+    public string nickname { get; private set; }
     public string suggestedDonation { get; private set; }
 
     //Decimal donation number used in the initializing func. Set to private since
@@ -76,26 +86,28 @@ class Program
     private static string listAllAnimals(animalFile[] animalsArr)
     {
         return string.Join("\n\n", animalsArr.Select(animal_ =>
-        $"Species: {animal_.animalID}\nID#: {animal_.animalSpecies}\nAge: {animal_.animalAge}\nNickname: {animal_.animalNickname}\n" +
-        $"Physical description: {animal_.animalPhysicalDescription}\nPersonality: {animal_.animalPersonalityDescription}\n" +
+        $"Species: {animal_.ID}\nID#: {animal_.species}\nAge: {animal_.age}\nNickname: {animal_.nickname}\n" +
+        $"Physical description: {animal_.physicalDescription}\nPersonality: {animal_.personalityDescription}\n" +
         $"Suggested Donation: {animal_.suggestedDonation:C2}\n"));
     }
 
+    //Search an animal by ID... If not found then returns with no results found for ID#
     private static string searchID(animalFile[] animalsArr, string ID)
     {
         for (int i = 0; i<animalsArr.Count(); i++) 
         {
-            if (animalsArr[i].animalID == ID)
+            if (animalsArr[i].ID == ID)
             {
-                return $"Species: {animalsArr[i].animalID}\nID#: {animalsArr[i].animalSpecies}\nAge: {animalsArr[i].animalAge}\n" +
-                       $"Nickname: {animalsArr[i].animalNickname}\nPhysical description: {animalsArr[i].animalPhysicalDescription}\n" +
-                       $"Personality: {animalsArr[i].animalPersonalityDescription}\nSuggested Donation: {animalsArr[i].suggestedDonation}\n\n";
+                return $"Species: {animalsArr[i].ID}\nID#: {animalsArr[i].species}\nAge: {animalsArr[i].age}\n" +
+                       $"Nickname: {animalsArr[i].nickname}\nPhysical description: {animalsArr[i].physicalDescription}\n" +
+                       $"Personality: {animalsArr[i].personalityDescription}\nSuggested Donation: {animalsArr[i].suggestedDonation}\n\n";
             };
         };
 
-        return "No results found";
+        return $"No results found for ID#: {ID}.";
     }
 
+    //Searches a given species for characteristics...can also just search all
     private static string searchCharacteristics(animalFile[] animalArr, string species, string[] characteristics)
     {
         string? matchingNicknames = null;
@@ -105,14 +117,14 @@ class Program
         for (int i = 0; i < animalArr.Count(); i++)
         {
             //Check if the species contains the species requested. also lowercases it.
-            if (animalArr[i].animalSpecies.Contains(species.ToLower()))
+            if (animalArr[i].species.Contains(species.ToLower()) || species == "all")
             {
                 //If true then next check check if the species has any of the characteristics desired
                 for (int y = 0; y < characteristics.Count(); y++)
                 {
                     //Get the index of the match
-                    int physicalIndex = animalArr[i].animalPhysicalDescription.IndexOf(characteristics[y]);
-                    int personalIndex = animalArr[i].animalPersonalityDescription.IndexOf(characteristics[y]);
+                    int physicalIndex = animalArr[i].physicalDescription.IndexOf(characteristics[y]);
+                    int personalIndex = animalArr[i].personalityDescription.IndexOf(characteristics[y]);
                     //If there is no match then the index will be -1
 
                     //Check Physical & Personality description for requested characteristics
@@ -125,10 +137,10 @@ class Program
                          * it to ' ' if its a match then its valid, if not then its invalid and we dont add it.
                          */
                         if ((physicalIndex == 0 || personalIndex == 0) ||
-                            (physicalIndex > 0 && animalArr[i].animalPhysicalDescription[physicalIndex - 1] == ' ') ||
-                            (personalIndex > 0 && animalArr[i].animalPersonalityDescription[personalIndex - 1] == ' '))
+                            (physicalIndex > 0 && animalArr[i].physicalDescription[physicalIndex - 1] == ' ') ||
+                            (personalIndex > 0 && animalArr[i].personalityDescription[personalIndex - 1] == ' '))
                         {
-                            matchingNicknames += $"{animalArr[i].animalNickname} (ID#: {animalArr[i].animalID}): {characteristics[y]}\n";
+                            matchingNicknames += $"{animalArr[i].nickname} (ID#: {animalArr[i].ID}): {characteristics[y]}\n";
                         };
                     };
                 }
@@ -186,9 +198,9 @@ class Program
         animalFile lion = new animalFile(
             "cat",
             "c4",
-            "N/A",
-            "N/A",
-            "N/A",
+            "",
+            "",
+            "",
             "lion",
             "");
 
@@ -238,7 +250,7 @@ class Program
                     string? desiredSpecies = null;
                     
                     //Request input from user for the desired species
-                    Console.WriteLine($"\r\nEnter one desired species to search for");
+                    Console.WriteLine($"\r\nEnter one desired species to search for... Or type \"all\" to search all species.");
                     takeInput(ref desiredSpecies);
 
                     string? inputCharacteristics = null;
@@ -300,7 +312,7 @@ class Program
                     Console.WriteLine("Please input the animal's ID");
                     takeInput(ref inID);
 
-                    bool dup = animals.Any(a => a.animalID == inID);
+                    bool dup = animals.Any(a => a.ID == inID);
                     //If there is a matching ID then do not add animal
                     if (dup) 
                     {
@@ -310,7 +322,8 @@ class Program
                         Console.WriteLine("Press enter to continue");
                         Console.ReadLine();
 
-                        break; }; //Exit switch case if duplicate found
+                        break; 
+                    }; //Exit switch case if duplicate found
 
                     Console.WriteLine("Please input the animal's Age");
                     takeInput(ref inAge);
@@ -331,6 +344,8 @@ class Program
                     
                     Array.Resize(ref animals, animals.Length+1);
                     animals[animals.Length-1] = newAnimal;
+
+                    GC.Collect(); //Force memory clean
                     break;
             };
         } while (menuSelection != "exit");
